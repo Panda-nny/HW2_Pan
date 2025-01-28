@@ -154,6 +154,8 @@ ggplot(tempStats) +
 
 The above scatterplots do not display a clear correlation between temperature and boardings, and a test for linear correlation between boarding counts and temperature controlling for weekends vs. weekdays yields an r-squared value of less than .03 across all hours of the day. However, a test for linear correlation may not be the most reliable method of determine the effects of temperature on boarding counts as both excessively hotter and colder temperatures are generally considered undesirable (which may or may not lead to an increase of bus usage). Regardless, the scatterplot shows a clear difference in boarding numbers between weekends and weekdays, with the general disparity reaching a high in the late afternoon between weekends and weekdays.
 
+\pagebreak
+
 ## Problem 4:
 
 ### 4.A)
