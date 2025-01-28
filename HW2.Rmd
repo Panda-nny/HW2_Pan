@@ -1,0 +1,194 @@
+---
+title: "HW2"
+author: "Danny Pan, EID: dp36627, https://github.com/Panda-nny/HW2_Pan"
+date: "2025-01-26"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r echo = FALSE, message = FALSE}
+library(tidyverse)
+library(kableExtra)
+
+```
+
+## Problem 1:
+
+### 1.A)
+
+```{r echo = FALSE, message = FALSE}
+profs <- read_csv("profs.csv")
+ggplot(profs) + 
+  geom_histogram(aes(x = eval)) + 
+  labs(title = "UT Courses: Course Evaluation Distribution", x = "Avg Evaluation Score (1-5)")
+#mean(profs$eval)
+#sd(profs$eval)
+```
+
+The distribution of course evaluation scores of 463 UT courses appear to be approximately normal, centered around a mean of 4.0 with a standard deviation of 0.55. While multiple courses had the maximum average course rating of 5, no professor's average course rating was lower than 2.1. Note that some professors taught multiple courses that were evaluated in this dataset (a total of 94 unique professors).
+
+### 1.B)
+
+```{r echo=FALSE}
+ggplot(profs) + 
+  geom_boxplot(aes(x = eval, y = native)) + 
+  labs(title = "Avg course eval scores across UT professors by English native speaker status", y = "Native English Speaker?", x = "Avg Evaluation Score")
+#median(profs$eval[profs$native == "no"])
+#median(profs$eval[profs$native == "yes"])
+#quantile(profs$eval[profs$native == "no"],.75)
+#table(profs$native)
+
+#should I make a comment on the dots? Idk what theyre called if it's not
+
+```
+
+The median course eval rating for the 435 average evaluations for native English speaking UT professors was 4.0, compared to a median rating of 3.6 for the 28 average evaluations of non-native English speaking UT professors. That being said, the range of average evaluation scores was much greater for native English speaking professors, with both a higher maximum and lower minimum scores.
+
+### 1.C)
+
+```{r echo=FALSE, message = FALSE}
+ggplot(profs) + 
+  geom_histogram(aes(x = eval)) + 
+  facet_wrap(~gender, nrow = 2) + 
+  labs(title = "Distribution of UT course eval scores by professor's gender", x = "Avg Evaluation Score")
+#mean(profs$eval[profs$gender == "male"])
+#sd(profs$eval[profs$gender == "male"])
+#mean(profs$eval[profs$gender == "female"])
+#sd(profs$eval[profs$gender == "female"])
+#table(profs$gender)
+```
+
+The distribution of female and male UT professors' average evaluation scores appear fairly similar, with an average score of 4.07 with a standard deviation of 0.56 for 268 average evaluations of male professors and an average score of 3.90 with a standard deviation of 0.54 for 195 average evaluations of female professors. Male professors were the only professors to be scored an average of 5/5 but also consisted of the professors with the lowest ratings.
+
+### 1.D)
+
+```{r echo = FALSE}
+ggplot(profs) + 
+  geom_point(aes(x = beauty, y = eval)) + 
+  labs(title = 'Avg UT course eval scores vs. Professor attractiveness rating', x = 'Beauty Rating (-2 to 2)', y = 'Avg Eval Score')
+#cor(profs$eval, profs$beauty) ** 2
+```
+
+There doesn't appear to be a clear association between the average rating of UT course evaluations and the attractiveness rating of the course's professor, which has an low r-squared value of 0.04.
+
+## Problem 2:
+
+### 2.A)
+
+```{r echo = FALSE, message=FALSE}
+bikes <- read_csv("bikeshare.csv")
+hourBikes <- bikes %>% group_by(hr) %>% summarize(averageTotal = mean(total))
+ggplot(hourBikes) + 
+  geom_line(aes(x = hr, y = averageTotal)) + 
+  labs(title = "Average Capital Bikeshare bike rentals per hour of day", y = 'Average Total Rentals', x = "Hour of Day") + 
+  scale_x_continuous(breaks = hourBikes$hr, labels = hourBikes$hr) + 
+  ylim(0,600)
+```
+
+There appears to be two primary peaks in hours for bike rentals in DC: one at 8-9AM and another larger peak of over 450 average rentals each day at 5-6PM.
+
+### 2.B)
+
+```{r echo = FALSE}
+hourWorkdayBikes <- bikes %>% group_by(hr,workingday) %>% summarize(averageTotal = mean(total), .groups = 'keep') %>% mutate(workday = ifelse(workingday == 1, yes="Workday", no="Non-workday"))
+
+ggplot(hourWorkdayBikes) + 
+  geom_line(aes(x = hr, y = averageTotal)) + 
+  facet_wrap(~workday, nrow = 2) + 
+  labs(title = "Average Capital Bikeshare bike rentals per hour of day", y = 'Average Total Rentals', x = "Hour of Day") + 
+  scale_x_continuous(breaks = hourBikes$hr, labels = hourBikes$hr) + ylim(0,600)
+```
+
+It's interesting to note that the pattern of average total rentals per hour for nonworkdays doesn't resemble the overall pattern at all, with a gradual increase in the morning to a fairly-uniform peak in the afternoon to a gradual decrease afterwards.
+
+### 2.C)
+
+```{r echo = FALSE}
+NineAMs <- bikes %>% filter(hr == 9) %>% group_by(workingday,weathersit) %>% summarize(averageTotal = mean(total), .groups = 'keep') %>% mutate(workday = ifelse(workingday == 1, yes="Workday", no="Non-workday"))
+
+ggplot(NineAMs) + 
+  geom_col(aes(x = weathersit, y = averageTotal)) + 
+  facet_wrap(~workday, nrow = 1) + 
+  theme(plot.caption = element_text(hjust = 0)) +
+  labs(title = "Average Total Rentals at 9AM by Weather", x = "Weather Code", y = "Average Total Rentals at 9AM", caption = "1: Clear, Few clouds, Partly cloudy, Partly cloudy \n2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist \n3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds")
+
+```
+
+While mist seems to be a factor contributing to less 9AM rentals on non-workdays, mist doesn't affect rates on workdays. There is a noticeable drop in 9AM rentals across all days on average when there is light precipitation.
+
+## Problem 3:
+
+### 3.1)
+
+```{r echo = FALSE, message = FALSE}
+bus <- read_csv("capmetro_UT.csv")
+busStats <- bus %>% group_by(hour_of_day,month,day_of_week) %>% summarise(averageTotal = mean(boarding), .groups = 'keep') %>% arrange(desc(month))
+
+ggplot(busStats) +
+  geom_line(aes(x = hour_of_day, y = averageTotal, color = factor(month, c("Sep", "Oct", "Nov")))) + 
+  facet_wrap(~factor(day_of_week, c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")), nrow = 2) +
+  labs(title = "Average Boardings per hour of day by day of week", y = 'Average Boardings', x = "Hour of Day") + 
+  scale_x_continuous(breaks = c(6,9,12,15,18,21), labels = c(6,9,12,15,18,21)) + ylim(0,200) + guides(color=guide_legend(title="Month"))
+  
+
+```
+
+The above graphs display the average hourly number of Capital Metro bus boardings in the UT area, split by the day of week and differentiated by different Fall months. It appears that bus usage is infrequent on the weekends (which is relatively stagnant, potentially due to reduced service) compared to weekdays (which has a noticeable peak in the afternoon). Additionally, peak hours on weekdays don't vary too much from around 4-6pm. It's interesting to note that there is a significantly lower average number of boardings on September Mondays and Wed/Th/Fri of November, which may be explained by holidays such as Labor Day and Thanksgiving Break.
+
+```{r echo = FALSE}
+
+tempStats <- bus %>% mutate(day_of_week = factor(day_of_week, levels=c("Mon", "Tue", "Wed","Thu", "Fri", "Sat", "Sun")), month = factor(month, levels=c("Sep", "Oct","Nov")))
+
+summaryTemp <- tempStats %>% group_by(hour_of_day,weekend) %>% summarize("r^2" = cor(temperature,boarding) ^ 2, .groups = 'keep')
+
+ggplot(tempStats) + 
+  geom_point(aes(x = temperature, y = boarding, color = weekend),size=0.5) + 
+  facet_wrap(~hour_of_day) +
+  labs(title = 'Boardings vs. Temperature by hour of day', y = 'Boardings within the hour') + 
+  xlim(20,100) + ylim(0,300) + 
+  guides(color=guide_legend(title=""))
+
+```
+
+The above scatterplots do not display a clear correlation between temperature and boardings, and a test for linear correlation between boarding counts and temperature controlling for weekends vs. weekdays yields an r-squared value of less than .03 across all hours of the day. However, a test for linear correlation may not be the most reliable method of determine the effects of temperature on boarding counts as both excessively hotter and colder temperatures are generally considered undesirable (which may or may not lead to an increase of bus usage). Regardless, the scatterplot shows a clear difference in boarding numbers between weekends and weekdays, with the general disparity reaching a high in the late afternoon between weekends and weekdays.
+
+## Problem 4:
+
+### 4.A)
+
+```{r echo = FALSE, message = FALSE}
+billboard <- read_csv("billboard.csv") %>% select(performer,song,year,week,week_position)
+
+totalWeeks <- billboard %>% group_by(performer,song) %>% summarize(count = n()) %>% arrange(desc(count))
+
+kable(head(totalWeeks,10))
+```
+
+The above table lists the 10 songs by a performer that appeared on the Billboard Top 100 for the longest total number of weeks from 1958 to the 22nd week of 2021. There is yet to be a song to be on the Billboard Top 100 for over 1.5 years.
+
+### 4.B)
+
+```{r echo = FALSE}
+uniqueSongs <- billboard %>% group_by(year) %>% summarize(uniqueCt = n_distinct(song)) %>% filter(year != 1958 & year != 2021)
+
+ggplot(uniqueSongs) + geom_line(aes(x = year, y = uniqueCt)) +
+  labs(title = "Unique Songs on Billboard Top 100 over the Years") +
+  scale_x_continuous(breaks = c(1959,1970,1980,1990,2000,2010,2020), labels = c(1959,1970,1980,1990,2000,2010,2020))
+
+```
+
+The graph of total unique songs per year from 1959-2020 displays a high at around 1960, then a continual decline of unique songs until the early 2000s, and generally gradual increase since then, with a sharp relative peak in 2010/2011. The presence of more unique songs may indicate both a diversity of songs in the Billboard Top 100 but also potentially less audience retention.
+
+### 4.3)
+
+```{r echo = FALSE}
+Plus30TWH <- totalWeeks %>% filter(count >= 10) %>% group_by(performer) %>% summarise(TWH = n()) %>% filter(TWH >= 30)
+ggplot(Plus30TWH) + geom_col(aes(x = reorder(performer, TWH), y = TWH)) +
+  labs(title = "Artists with at least 30 Ten-Week Hits", x = "Artist", y = "Number of Songs") +
+  coord_flip()
+  
+```
+
+The 19 artists with 30 or more songs in the Billboard Top 100 for at least 10 weeks are listed above, with Elton John assuredly topping the list with 32 songs, cementing his legacy as one of the Kings of Pop.
